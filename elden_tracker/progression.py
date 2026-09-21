@@ -32,6 +32,28 @@ class ItemInfo:
         self.hint = hint
         self.multiple = multiple
 
+    @property
+    def category(self) -> str:
+        """Categorize item based on FromSoftware ID prefix and name."""
+        prefix = self.item_id[:2]
+        if prefix in ("00", "01", "02", "03", "04"):
+            return "weapon"
+        elif prefix == "10":
+            return "armor"
+        elif prefix == "20":
+            return "talisman"
+        elif prefix == "80":
+            return "ash_of_war"
+        elif prefix == "40":
+            lower = self.name.lower()
+            if "cookbook" in lower or "recipe" in lower or "note:" in lower:
+                return "cookbook"
+            elif any(k in lower for k in ("stone", "tear", "seed", "key", "bell bearing", "whetblade", "medallion", "scroll", "prayerbook", "great rune", "remanence", "potion", "whistle")):
+                return "key_item"
+            else:
+                return "spell"
+        return "other"
+
     def clean_hint(self) -> str:
         """Strip HTML tags from hint for clean CLI and Markdown display."""
         text = self.hint.replace("<ul>", "").replace("</ul>", "").replace("<li>", "").replace("</li>", "")

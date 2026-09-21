@@ -103,6 +103,8 @@ def cmd_missing(args: argparse.Namespace):
         missing = [m for m in missing if args.zone.lower() in m.zone.lower()]
     if args.type:
         missing = [m for m in missing if m.item_type.lower() == args.type.lower()]
+    if getattr(args, "category", None):
+        missing = [m for m in missing if m.category.lower() == args.category.lower()]
 
     print(f"\n=== Missing Items ({len(missing)} matching) ===")
     limit = args.limit or 30
@@ -211,13 +213,15 @@ def build_parser() -> argparse.ArgumentParser:
     p_missing = subparsers.add_parser("missing", help="List missing items by region or zone.")
     p_missing.add_argument("--region", "-r", help="Filter by region (e.g. Limgrave, Caelid).")
     p_missing.add_argument("--zone", "-z", help="Filter by zone name substring.")
-    p_missing.add_argument("--type", "-t", help="Filter by item type (e.g. weapon, spell, armor).")
+    p_missing.add_argument("--type", "-t", help="Filter by acquisition type (e.g. boss, chest, scarab, merchant, foe).")
+    p_missing.add_argument("--category", "-c", help="Filter by gear category (weapon, armor, talisman, spell, ash_of_war, cookbook, key_item).")
     p_missing.add_argument("--limit", "-l", type=int, default=30, help="Max items to list.")
 
     # query
     p_query = subparsers.add_parser("query", help="Check status of specific items.")
     p_query.add_argument("--name", "-n", help="Item name to search for.")
-    p_query.add_argument("--type", "-t", help="Item type filter.")
+    p_query.add_argument("--type", "-t", help="Acquisition type filter (boss, chest, etc.).")
+    p_query.add_argument("--category", "-c", help="Gear category (weapon, armor, talisman, spell, etc.).")
     p_query.add_argument(
         "--death-mage",
         action="store_true",
