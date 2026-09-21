@@ -117,6 +117,12 @@ class TestSaveParserWithSyntheticSave(unittest.TestCase):
         slot_data[col_offset : col_offset + 4] = col_pattern
         slot_data[col_offset + 4] = 1
 
+        # 6. Upgrade material: Smithing Stone [1] (0x74, 0x27) -> quantity 5
+        mat_pattern = bytes([0x74, 0x27, 0x00, 0xB0])
+        mat_offset = 125000
+        slot_data[mat_offset : mat_offset + 4] = mat_pattern
+        slot_data[mat_offset + 4 : mat_offset + 6] = struct.pack("<H", 5)
+
         # Copy slot_data into buffer
         buffer[SLOT_START : SLOT_START + SLOT_LEN] = slot_data
 
@@ -146,6 +152,7 @@ class TestSaveParserWithSyntheticSave(unittest.TestCase):
         self.assertEqual(char.stats["Vigor"], 20)
         self.assertEqual(char.stats["Intelligence"], 25)
         self.assertEqual(char.collectibles.get("Memory Stone"), 1)
+        self.assertEqual(char.upgrade_materials.get("Smithing Stone [1]"), 5)
 
         # Check items parsed
         self.assertIn("40000082", char.item_ids)
@@ -164,6 +171,8 @@ class TestSaveParserWithSyntheticSave(unittest.TestCase):
         self.assertIn("TarnishedMage", md)
         self.assertIn("Rune Level:** 30", md)
         self.assertIn("Spectral Steed Whistle", md)
+        self.assertIn("Smithing Stone [1]", md)
+        self.assertIn('"Smithing Stone [1]": 5', json_str)
         self.assertIn('"overall_percent":', json_str)
 
 

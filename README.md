@@ -57,7 +57,13 @@ Displays all 10 character slots with name, level, and active status.
 python -m elden_tracker stats
 python -m elden_tracker stats --slot 1
 ```
-Displays Vigor, Mind, Endurance, Strength, Dexterity, Intelligence, Faith, Arcane, Runes, HP/FP/Stamina, and collectible capacities (Memory Stones, Pots, etc.).
+Displays Vigor, Mind, Endurance, Strength, Dexterity, Intelligence, Faith, Arcane, Runes, HP/FP/Stamina, collectible capacities (Memory Stones, Pots, etc.), and held upgrade materials.
+
+### View Upgrade Materials
+```bash
+python -m elden_tracker materials
+```
+Displays all held Smithing Stones (1–8 + Ancient Dragon), Somber Stones (1–9 + Ancient Dragon), and Gloveworts.
 
 ### Regional Completion Summary
 ```bash

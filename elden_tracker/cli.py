@@ -64,6 +64,26 @@ def cmd_stats(args: argparse.Namespace):
         print("\n--- Collectibles & Capacity ---")
         for name, count in char.collectibles.items():
             print(f"  {name:<22}: {count}")
+
+    if char.upgrade_materials:
+        print("\n--- Upgrade Materials Held ---")
+        for mat_name, count in char.upgrade_materials.items():
+            print(f"  {mat_name:<34}: {count}")
+    print()
+
+
+def cmd_materials(args: argparse.Namespace):
+    """Display held upgrade materials (Smithing Stones, Somber Stones)."""
+    save, slot = _get_save_and_slot(args)
+    analyzer = ProgressionAnalyzer()
+    char = save.parse_character(slot, analyzer.collectibles_definitions)
+
+    print(f"\n=== Upgrade Materials Held: {char.name} (Level {char.level}) ===")
+    if not char.upgrade_materials:
+        print("  (No upgrade materials currently held)")
+    else:
+        for mat_name, count in char.upgrade_materials.items():
+            print(f"  {mat_name:<36}: {count}")
     print()
 
 
@@ -206,6 +226,9 @@ def build_parser() -> argparse.ArgumentParser:
     # stats
     subparsers.add_parser("stats", help="Display stats, runes, and collectible capacities.")
 
+    # materials
+    subparsers.add_parser("materials", help="Display held upgrade materials (Smithing Stones, Somber Stones).")
+
     # summary
     subparsers.add_parser("summary", help="Display regional completion percentages.")
 
@@ -252,6 +275,7 @@ def main():
     commands = {
         "list": cmd_list,
         "stats": cmd_stats,
+        "materials": cmd_materials,
         "summary": cmd_summary,
         "missing": cmd_missing,
         "query": cmd_query,

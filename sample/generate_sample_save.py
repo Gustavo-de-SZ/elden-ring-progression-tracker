@@ -1,7 +1,11 @@
 """Generates a sample ER0000.sl2 save file with the user's Level 30 Astrologer."""
 
+import sys
 import struct
 import pathlib
+
+# Ensure repo root is on sys.path
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
 from elden_tracker.save_parser import (
     BND4_MAGIC,
@@ -82,6 +86,18 @@ def create_sample_save(output_path: str = "sample/ER0000.sl2"):
     col_offset = 120000
     slot_data[col_offset : col_offset + 4] = col_pattern
     slot_data[col_offset + 4] = 1
+
+    # Upgrade Materials
+    sample_materials = [
+        ((0x74, 0x27), 6),  # Smithing Stone [1]
+        ((0x75, 0x27), 3),  # Smithing Stone [2]
+        ((0xB0, 0x27), 1),  # Somber Smithing Stone [1]
+    ]
+    mat_offset = 125000
+    for i, ((low, high), qty) in enumerate(sample_materials):
+        cur = mat_offset + (i * 16)
+        slot_data[cur : cur + 4] = bytes([low, high, 0x00, 0xB0])
+        slot_data[cur + 4 : cur + 6] = struct.pack("<H", qty)
 
     buffer[SLOT_START : SLOT_START + SLOT_LEN] = slot_data
 

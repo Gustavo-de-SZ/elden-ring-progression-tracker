@@ -52,6 +52,17 @@ class ProgressExporter:
                 qty = self.report.collectibles.get(name, 0)
                 total_places = len(col_def.get("places", []))
                 lines.append(f"- **{name}:** {qty} / {total_places}")
+            lines.append("")
+
+        # Upgrade Materials Held
+        if self.report.upgrade_materials:
+            lines.append("## 💎 Upgrade Materials Held")
+            lines.append("| Material | Quantity |")
+            lines.append("| :--- | :--- |")
+            for mat_name, count in self.report.upgrade_materials.items():
+                lines.append(f"| **{mat_name}** | {count} |")
+            lines.append("")
+
         # Owned Items Summary
         if self.report.owned_items:
             lines.append("## 🎒 Collected Equipment & Key Items")

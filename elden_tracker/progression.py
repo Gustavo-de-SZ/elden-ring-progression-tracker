@@ -87,6 +87,7 @@ class ProgressionReport:
         owned_items: List[ItemInfo],
         missing_items: List[ItemInfo],
         region_stats: Dict[str, Dict[str, Any]],
+        upgrade_materials: Optional[Dict[str, int]] = None,
     ):
         self.character_name = character_name
         self.character_level = character_level
@@ -97,6 +98,7 @@ class ProgressionReport:
         self.owned_items = owned_items
         self.missing_items = missing_items
         self.region_stats = region_stats
+        self.upgrade_materials = upgrade_materials or {}
 
         total_catalog = len(owned_items) + len(missing_items)
         self.total_catalog_items = total_catalog
@@ -116,6 +118,7 @@ class ProgressionReport:
                 "total_items": self.total_catalog_items,
             },
             "collectibles": self.collectibles,
+            "upgrade_materials": self.upgrade_materials,
             "regions": self.region_stats,
         }
 
@@ -225,6 +228,7 @@ class ProgressionAnalyzer:
             owned_items=owned_items,
             missing_items=missing_items,
             region_stats=region_stats,
+            upgrade_materials=getattr(char_data, "upgrade_materials", {}),
         )
 
     def search_items(

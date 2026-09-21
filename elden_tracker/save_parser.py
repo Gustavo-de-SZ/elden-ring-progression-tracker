@@ -27,6 +27,34 @@ HEADER_LEVEL_OFFSET = 34
 INVENTORY_PATTERN_1 = b"\xb0\xad\x01\x00\x01\xff\xff\xff"
 INVENTORY_PATTERN_2 = b"\xb0\xad\x01\x00\x01"
 
+UPGRADE_MATERIALS: Dict[str, Tuple[int, int]] = {
+    "Smithing Stone [1]": (0x74, 0x27),
+    "Smithing Stone [2]": (0x75, 0x27),
+    "Smithing Stone [3]": (0x76, 0x27),
+    "Smithing Stone [4]": (0x77, 0x27),
+    "Smithing Stone [5]": (0x78, 0x27),
+    "Smithing Stone [6]": (0x79, 0x27),
+    "Smithing Stone [7]": (0x7A, 0x27),
+    "Smithing Stone [8]": (0x7B, 0x27),
+    "Ancient Dragon Smithing Stone": (0x7C, 0x27),
+    "Somber Smithing Stone [1]": (0xB0, 0x27),
+    "Somber Smithing Stone [2]": (0xB1, 0x27),
+    "Somber Smithing Stone [3]": (0xB2, 0x27),
+    "Somber Smithing Stone [4]": (0xB3, 0x27),
+    "Somber Smithing Stone [5]": (0xB4, 0x27),
+    "Somber Smithing Stone [6]": (0xB5, 0x27),
+    "Somber Smithing Stone [7]": (0xB6, 0x27),
+    "Somber Smithing Stone [8]": (0xB7, 0x27),
+    "Somber Smithing Stone [9]": (0xB8, 0x27),
+    "Somber Ancient Dragon Smithing Stone": (0xB9, 0x27),
+    "Grave Glovewort [1]": (0xD8, 0x27),
+    "Grave Glovewort [2]": (0xD9, 0x27),
+    "Grave Glovewort [3]": (0xDA, 0x27),
+    "Ghost Glovewort [1]": (0xEC, 0x27),
+    "Ghost Glovewort [2]": (0xED, 0x27),
+    "Ghost Glovewort [3]": (0xEE, 0x27),
+}
+
 
 def get_default_save_dirs() -> List[pathlib.Path]:
     """Return potential Elden Ring save directory paths based on current OS."""
@@ -139,6 +167,7 @@ class CharacterData:
         item_ids: List[str],
         collectibles: Dict[str, int],
         is_dlc_format: bool,
+        upgrade_materials: Optional[Dict[str, int]] = None,
     ):
         self.slot_index = slot_index
         self.name = name
@@ -151,6 +180,7 @@ class CharacterData:
         self.item_ids = item_ids
         self.collectibles = collectibles
         self.is_dlc_format = is_dlc_format
+        self.upgrade_materials = upgrade_materials or {}
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -165,6 +195,7 @@ class CharacterData:
             "total_items_held": len(self.item_ids),
             "item_ids": self.item_ids,
             "collectibles": self.collectibles,
+            "upgrade_materials": self.upgrade_materials,
             "is_dlc_format": self.is_dlc_format,
         }
 
@@ -241,6 +272,9 @@ class EldenSaveFile:
         # 3. Parse Collectibles
         collectibles = self._parse_collectibles(slot, collectibles_definitions or [])
 
+        # 4. Parse Upgrade Materials (Smithing Stones, Somber Stones, Gloveworts)
+        materials = self._parse_materials(slot)
+
         return CharacterData(
             slot_index=slot_index,
             name=profile.name,
@@ -253,7 +287,28 @@ class EldenSaveFile:
             item_ids=item_ids,
             collectibles=collectibles,
             is_dlc_format=is_dlc,
+            upgrade_materials=materials,
         )
+
+    def _parse_materials(self, slot: bytes) -> Dict[str, int]:
+        """Scan slot bytes for held upgrade materials (Smithing Stones, Somber Stones)."""
+        materials = {}
+        for name, (low, high) in UPGRADE_MATERIALS.items():
+            pattern = bytes([low, high, 0x00, 0xB0])
+            pos = slot.find(pattern)
+            if pos != -1 and pos + 6 <= len(slot):
+                qty = struct.unpack("<H", slot[pos + 4 : pos + 6])[0]
+                if qty > 0:
+                    materials[name] = qty
+            else:
+                # Check alternative storage/held flag 0x8080
+                pattern_alt = bytes([low, high, 0x80, 0x80])
+                pos = slot.find(pattern_alt)
+                if pos != -1 and pos + 6 <= len(slot):
+                    qty = struct.unpack("<H", slot[pos + 4 : pos + 6])[0]
+                    if qty > 0:
+                        materials[name] = qty
+        return materials
 
     def _parse_stats(
         self, slot: bytes, level: int
